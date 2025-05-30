@@ -3,9 +3,9 @@ package main
 import "fmt"
 
 const (
-	maxUsers        = 10
-	maxTransactions = 30
-	maxNFTs         = 100
+	maksUser        = 10
+	maksTransaksi   = 30
+	maksNFT         = 100
 )
 
 type NFT struct {
@@ -17,15 +17,15 @@ type NFT struct {
 }
 
 var (
-	usernames          [maxUsers]string
-	passwords          [maxUsers]string
-	balances           [maxUsers]float64
-	transactionHistory [maxUsers][maxTransactions]string
-	transactionCount   [maxUsers]int
-	userCount          int
-	loggedInUserIndex  int = -1
-	nfts               [maxNFTs]NFT
-	nftCount           int
+	daftarUsername       [maksUser]string
+	daftarPassword       [maksUser]string
+	saldo               [maksUser]float64
+	historiTransaksi    [maksUser][maksTransaksi]string
+	jumlahTransaksi     [maksUser]int
+	jumlahUser          int
+	indeksUserLogin     int = -1
+	daftarNFT           [maksNFT]NFT
+	jumlahNFT           int
 )
 
 func main() {
@@ -54,7 +54,7 @@ func main() {
 }
 
 func registrasi() {
-	if userCount >= maxUsers {
+	if jumlahUser >= maksUser {
 		fmt.Println("User penuh.")
 		return
 	}
@@ -64,17 +64,17 @@ func registrasi() {
 	fmt.Print("Password: ")
 	fmt.Scanln(&pass)
 
-	for i := 0; i < userCount; i++ {
-		if usernames[i] == uname {
+	for i := 0; i < jumlahUser; i++ {
+		if daftarUsername[i] == uname {
 			fmt.Println("Username sudah digunakan.")
 			return
 		}
 	}
 
-	usernames[userCount] = uname
-	passwords[userCount] = pass
-	balances[userCount] = 0
-	userCount++
+	daftarUsername[jumlahUser] = uname
+	daftarPassword[jumlahUser] = pass
+	saldo[jumlahUser] = 0
+	jumlahUser++
 
 	fmt.Println("Registrasi berhasil!")
 }
@@ -86,9 +86,9 @@ func login() {
 	fmt.Print("Password: ")
 	fmt.Scanln(&pass)
 
-	for i := 0; i < userCount; i++ {
-		if usernames[i] == uname && passwords[i] == pass {
-			loggedInUserIndex = i
+	for i := 0; i < jumlahUser; i++ {
+		if daftarUsername[i] == uname && daftarPassword[i] == pass {
+			indeksUserLogin = i
 			fmt.Printf("Selamat datang, %s!\n", uname)
 			dashboard()
 			return
@@ -99,8 +99,8 @@ func login() {
 
 func dashboard() {
 	for {
-		fmt.Printf("\n=== DASHBOARD %s ===\n", usernames[loggedInUserIndex])
-		fmt.Printf("Saldo: %.2f koin\n", balances[loggedInUserIndex])
+		fmt.Printf("\n=== DASHBOARD %s ===\n", daftarUsername[indeksUserLogin])
+		fmt.Printf("Saldo: %.2f koin\n", saldo[indeksUserLogin])
 		fmt.Println("1. Top Up")
 		fmt.Println("2. Tambah NFT")
 		fmt.Println("3. Tampilkan NFT")
@@ -139,7 +139,7 @@ func dashboard() {
 		case 10:
 			lihatHistori()
 		case 11:
-			loggedInUserIndex = -1
+			indeksUserLogin = -1
 			return
 		default:
 			fmt.Println("Pilihan tidak valid.")
@@ -152,7 +152,7 @@ func topUp() {
 	fmt.Print("Jumlah top up: ")
 	fmt.Scanln(&jumlah)
 	if jumlah > 0 {
-		balances[loggedInUserIndex] += jumlah
+		saldo[indeksUserLogin] += jumlah
 		catat(fmt.Sprintf("Top up %.2f koin", jumlah))
 		fmt.Println("Berhasil top up!")
 	} else {
@@ -161,7 +161,7 @@ func topUp() {
 }
 
 func tambahNFT() {
-	if nftCount >= maxNFTs {
+	if jumlahNFT >= maksNFT {
 		fmt.Println("NFT penuh.")
 		return
 	}
@@ -169,58 +169,56 @@ func tambahNFT() {
 	nama := inputStr("Nama: ")
 	harga := inputInt("Harga: ")
 	pop := inputInt("Popularitas: ")
-	nfts[nftCount] = NFT{id, nama, harga, pop, usernames[loggedInUserIndex]}
-	nftCount++
+	daftarNFT[jumlahNFT] = NFT{id, nama, harga, pop, daftarUsername[indeksUserLogin]}
+	jumlahNFT++
 	catat(fmt.Sprintf("Menambahkan NFT %s", nama))
 	fmt.Println("NFT ditambahkan.")
 }
 
 func tampilkanNFT() {
 	fmt.Println("\nDAFTAR NFT:")
-	for i := 0; i < nftCount; i++ {
+	for i := 0; i < jumlahNFT; i++ {
 		fmt.Printf("[%d] ID: %d | Nama: %s | Harga: %d | Popularitas: %d | Pemilik: %s\n",
-			i+1, nfts[i].ID, nfts[i].Nama, nfts[i].Harga, nfts[i].Popularitas, nfts[i].Pemilik)
+			i+1, daftarNFT[i].ID, daftarNFT[i].Nama, daftarNFT[i].Harga, daftarNFT[i].Popularitas, daftarNFT[i].Pemilik)
 	}
 }
 
 func beliNFT() {
 	tampilkanNFT()
-	index := inputInt("Pilih nomor NFT yang ingin dibeli: ") - 1
-	if index >= 0 && index < nftCount {
-		nft := nfts[index]
-		if nft.Pemilik == usernames[loggedInUserIndex] {
+	indeks := inputInt("Pilih nomor NFT yang ingin dibeli: ") - 1
+	if indeks >= 0 && indeks < jumlahNFT {
+		nft := &daftarNFT[indeks]
+		if nft.Pemilik == daftarUsername[indeksUserLogin] {
 			fmt.Println("Tidak bisa membeli NFT milik sendiri.")
 			return
 		}
-		if float64(nft.Harga) > balances[loggedInUserIndex] {
+		if float64(nft.Harga) > saldo[indeksUserLogin] {
 			fmt.Println("Saldo tidak cukup.")
 			return
 		}
-		for i := 0; i < userCount; i++ {
-			if usernames[i] == nft.Pemilik {
-				balances[i] += float64(nft.Harga)
-				catatTo(i, fmt.Sprintf("NFT %s terjual ke %s", nft.Nama, usernames[loggedInUserIndex]))
+
+		for i := 0; i < jumlahUser; i++ {
+			if daftarUsername[i] == nft.Pemilik {
+				saldo[i] += float64(nft.Harga)
+				catatTo(i, fmt.Sprintf("NFT %s terjual ke %s", nft.Nama, daftarUsername[indeksUserLogin]))
+				break
 			}
 		}
-		balances[loggedInUserIndex] -= float64(nft.Harga)
-		catat(fmt.Sprintf("Membeli NFT %s", nft.Nama))
-
-		for i := index; i < nftCount-1; i++ {
-			nfts[i] = nfts[i+1]
-		}
-		nftCount--
-		fmt.Println("NFT berhasil dibeli!")
+		saldo[indeksUserLogin] -= float64(nft.Harga)
+		catat(fmt.Sprintf("Membeli NFT %s dari %s", nft.Nama, nft.Pemilik))
+		nft.Pemilik = daftarUsername[indeksUserLogin]
+		fmt.Println("NFT berhasil dibeli dan kini menjadi milik Anda!")
 	} else {
 		fmt.Println("Pilihan tidak valid.")
 	}
 }
 
 func editNFT() {
-	idx := inputInt("Nomor NFT yang ingin diedit: ") - 1
-	if idx >= 0 && idx < nftCount && nfts[idx].Pemilik == usernames[loggedInUserIndex] {
-		nfts[idx].Nama = inputStr("Nama baru: ")
-		nfts[idx].Harga = inputInt("Harga baru: ")
-		nfts[idx].Popularitas = inputInt("Popularitas baru: ")
+	indeks := inputInt("Nomor NFT yang ingin diedit: ") - 1
+	if indeks >= 0 && indeks < jumlahNFT && daftarNFT[indeks].Pemilik == daftarUsername[indeksUserLogin] {
+		daftarNFT[indeks].Nama = inputStr("Nama baru: ")
+		daftarNFT[indeks].Harga = inputInt("Harga baru: ")
+		daftarNFT[indeks].Popularitas = inputInt("Popularitas baru: ")
 		fmt.Println("NFT diperbarui.")
 	} else {
 		fmt.Println("Index tidak valid atau bukan milik Anda.")
@@ -228,12 +226,12 @@ func editNFT() {
 }
 
 func hapusNFT() {
-	idx := inputInt("Nomor NFT yang ingin dihapus: ") - 1
-	if idx >= 0 && idx < nftCount && nfts[idx].Pemilik == usernames[loggedInUserIndex] {
-		for i := idx; i < nftCount-1; i++ {
-			nfts[i] = nfts[i+1]
+	indeks := inputInt("Nomor NFT yang ingin dihapus: ") - 1
+	if indeks >= 0 && indeks < jumlahNFT && daftarNFT[indeks].Pemilik == daftarUsername[indeksUserLogin] {
+		for i := indeks; i < jumlahNFT-1; i++ {
+			daftarNFT[i] = daftarNFT[i+1]
 		}
-		nftCount--
+		jumlahNFT--
 		fmt.Println("NFT dihapus.")
 	} else {
 		fmt.Println("Index tidak valid atau bukan milik Anda.")
@@ -242,80 +240,80 @@ func hapusNFT() {
 
 func cariNFT() {
 	nama := inputStr("Nama NFT yang dicari: ")
-	found := false
-	for i := 0; i < nftCount; i++ {
-		if nfts[i].Nama == nama {
-			fmt.Printf("Ditemukan: %v\n", nfts[i])
-			found = true
+	ditemukan := false
+	for i := 0; i < jumlahNFT; i++ {
+		if daftarNFT[i].Nama == nama {
+			fmt.Printf("Ditemukan: %v\n", daftarNFT[i])
+			ditemukan = true
 			break
 		}
 	}
-	if !found {
+	if !ditemukan {
 		fmt.Println("NFT tidak ditemukan.")
 	}
 }
 
 func urutHargaNaik() {
-	for i := 0; i < nftCount-1; i++ {
+	for i := 0; i < jumlahNFT-1; i++ {
 		minIdx := i
-		for j := i + 1; j < nftCount; j++ {
-			if nfts[j].Harga < nfts[minIdx].Harga {
+		for j := i + 1; j < jumlahNFT; j++ {
+			if daftarNFT[j].Harga < daftarNFT[minIdx].Harga {
 				minIdx = j
 			}
 		}
-		nfts[i], nfts[minIdx] = nfts[minIdx], nfts[i]
+		daftarNFT[i], daftarNFT[minIdx] = daftarNFT[minIdx], daftarNFT[i]
 	}
 	fmt.Println("NFT diurutkan berdasarkan harga naik.")
 }
 
 func urutPopularitasTurun() {
-	for i := 1; i < nftCount; i++ {
-		temp := nfts[i]
+	for i := 1; i < jumlahNFT; i++ {
+		temp := daftarNFT[i]
 		j := i - 1
-		for j >= 0 && nfts[j].Popularitas < temp.Popularitas {
-			nfts[j+1] = nfts[j]
+		for j >= 0 && daftarNFT[j].Popularitas < temp.Popularitas {
+			daftarNFT[j+1] = daftarNFT[j]
 			j--
 		}
-		nfts[j+1] = temp
+		daftarNFT[j+1] = temp
 	}
 	fmt.Println("NFT diurutkan berdasarkan popularitas turun.")
 }
 
 func lihatHistori() {
 	fmt.Println("\n=== HISTORI TRANSAKSI ===")
-	if transactionCount[loggedInUserIndex] == 0 {
+	if jumlahTransaksi[indeksUserLogin] == 0 {
 		fmt.Println("Tidak ada histori.")
 		return
 	}
-	for i := 0; i < transactionCount[loggedInUserIndex]; i++ {
-		fmt.Println("-", transactionHistory[loggedInUserIndex][i])
+	for i := 0; i < jumlahTransaksi[indeksUserLogin]; i++ {
+		fmt.Println("-", historiTransaksi[indeksUserLogin][i])
 	}
 }
 
 func catat(isi string) {
-	if transactionCount[loggedInUserIndex] < maxTransactions {
-		transactionHistory[loggedInUserIndex][transactionCount[loggedInUserIndex]] = isi
-		transactionCount[loggedInUserIndex]++
+	if jumlahTransaksi[indeksUserLogin] < maksTransaksi {
+		historiTransaksi[indeksUserLogin][jumlahTransaksi[indeksUserLogin]] = isi
+		jumlahTransaksi[indeksUserLogin]++
 	}
 }
 
-func catatTo(userIndex int, isi string) {
-	if transactionCount[userIndex] < maxTransactions {
-		transactionHistory[userIndex][transactionCount[userIndex]] = isi
-		transactionCount[userIndex]++
+func catatTo(indeks int, isi string) {
+	if jumlahTransaksi[indeks] < maksTransaksi {
+		historiTransaksi[indeks][jumlahTransaksi[indeks]] = isi
+		jumlahTransaksi[indeks]++
 	}
 }
 
-func inputInt(prompt string) int {
+func inputInt(pesan string) int {
 	var val int
-	fmt.Print(prompt)
+	fmt.Print(pesan)
 	fmt.Scanln(&val)
 	return val
 }
 
-func inputStr(prompt string) string {
+func inputStr(pesan string) string {
 	var val string
-	fmt.Print(prompt)
+	fmt.Print(pesan)
 	fmt.Scanln(&val)
 	return val
 }
